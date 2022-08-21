@@ -2,12 +2,10 @@
 Thinkers are the "brain" of an entity. You attach Scorers to it, and the Thinker picks the right Action to run based on the resulting Scores.
 */
 
-use std::sync::Arc;
+use std::{sync::Arc, time::{Duration, Instant}};
 
-use bevy::{
-    prelude::*,
-    utils::{Duration, Instant},
-};
+
+use bevy_ecs::prelude::*;
 
 use crate::{
     actions::{self, ActionBuilder, ActionBuilderWrapper, ActionState},
@@ -134,7 +132,6 @@ impl ActionBuilder for ThinkerBuilder {
                 otherwise: self.otherwise.clone(),
                 current_action: None,
             })
-            .insert(Name::new("Thinker"))
             .insert(ActionState::Requested);
     }
 }
@@ -154,7 +151,7 @@ pub fn thinker_component_detach_system(
     q: Query<(Entity, &HasThinker), Without<ThinkerBuilder>>,
 ) {
     for (actor, HasThinker(thinker)) in q.iter() {
-        cmd.entity(*thinker).despawn_recursive();
+        cmd.entity(*thinker).despawn();
         cmd.entity(actor).remove::<HasThinker>();
     }
 }
@@ -167,7 +164,7 @@ pub fn actor_gone_cleanup(
     for (child, Actor(actor)) in q.iter() {
         if actors.get(*actor).is_err() {
             // Actor is gone. Let's clean up.
-            cmd.entity(child).despawn_recursive();
+            cmd.entity(child).despawn();
         }
     }
 }
@@ -223,7 +220,7 @@ pub fn thinker_system(
                     let state = action_states.get_mut(current.0.0).expect("Couldn't find a component corresponding to the current action. This is definitely a bug.").clone();
                     match state {
                         ActionState::Success | ActionState::Failure => {
-                            cmd.entity(current.0 .0).despawn_recursive();
+                            cmd.entity(current.0 .0).despawn();
                             thinker.current_action = None;
                         }
                         _ => {
@@ -298,7 +295,7 @@ fn exec_picked_action(
                 }
                 ActionState::Init | ActionState::Success | ActionState::Failure => {
                     // Despawn the action itself.
-                    cmd.entity(action_ent.0).despawn_recursive();
+                    cmd.entity(action_ent.0).despawn();
                     thinker.current_action = Some((
                         ActionEnt(picked_action.1.spawn_action(cmd, actor)),
                         picked_action.clone(),

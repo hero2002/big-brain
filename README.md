@@ -1,9 +1,5 @@
 # big-brain
 
-[![crates.io](https://img.shields.io/crates/v/big-brain.svg)](https://crates.io/crates/big-brain)
-[![docs.rs](https://docs.rs/big-brain/badge.svg)](https://docs.rs/big-brain)
-[![Apache 2.0](https://img.shields.io/badge/license-Apache-blue.svg)](./LICENSE.md)
-
 `big-brain` is a [Utility AI](https://en.wikipedia.org/wiki/Utility_system)
 library for games, built for the [Bevy Game Engine](https://bevyengine.org/)
 
@@ -37,7 +33,7 @@ actual behavior.
 `Scorer`s are entities that look at the world and evaluate into [`Score`](scorers::Score) values. You can think of them as the "eyes" of the AI system. They're a highly-parallel way of being able to look at the `World` and use it to make some decisions later.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component)]
@@ -62,7 +58,7 @@ pub fn thirsty_scorer_system(
 state of the state machine.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component)]
@@ -116,13 +112,6 @@ App::new()
     .add_system_to_stage(BigBrainStage::Scorers, thirsty_scorer_system)
     .run();
 ```
-
-### Examples
-
-The full source code of the above Thirst/Drink action example can be found in the [Thirst example](examples/thirst.rs).
-
-Also, the [Sequence Example](examples/sequence.rs) example describes how to use `Steps` to compose several actions
-together sequentially.
 
 ### Contributing
 

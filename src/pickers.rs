@@ -2,7 +2,7 @@
 Pickers are used by Thinkers to determine which of its Scorers will "win".
 */
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 use crate::{choices::Choice, scorers::Score};
 

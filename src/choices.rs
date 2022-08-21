@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 use crate::{
     actions::{ActionBuilder, ActionBuilderWrapper},
@@ -38,7 +38,6 @@ impl ChoiceBuilder {
 
     pub fn build(&self, cmd: &mut Commands, actor: Entity, parent: Entity) -> Choice {
         let scorer_ent = self.when.spawn_scorer(cmd, actor);
-        cmd.entity(parent).push_children(&[scorer_ent]);
         Choice {
             scorer: ScorerEnt(scorer_ent),
             action: ActionBuilderWrapper::new(self.then.clone()),

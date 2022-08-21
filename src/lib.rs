@@ -32,7 +32,7 @@ actual behavior.
 `Scorer`s are entities that look at the world and evaluate into [`Score`](scorers::Score) values. You can think of them as the "eyes" of the AI system. They're a highly-parallel way of being able to look at the `World` and use it to make some decisions later.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component)]
@@ -57,7 +57,7 @@ pub fn thirsty_scorer_system(
 state of the state machine.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component)]
@@ -138,7 +138,7 @@ pub mod prelude {
     */
     use super::*;
 
-    pub use super::BigBrainPlugin;
+    // pub use super::BigBrainPlugin;
     pub use super::BigBrainStage;
     pub use actions::{ActionBuilder, ActionState, Concurrently, Steps};
     pub use pickers::{FirstToScore, Picker};
@@ -148,7 +148,7 @@ pub mod prelude {
     pub use thinker::{Actor, Thinker, ThinkerBuilder};
 }
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 /**
 Core [`Plugin`] for Big Brain behavior. Required for any of the [`Thinker`](thinker::Thinker)-related magic to work.
@@ -156,7 +156,7 @@ Core [`Plugin`] for Big Brain behavior. Required for any of the [`Thinker`](thin
 ### Example
 
 ```no_run
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 App::build()
@@ -165,48 +165,48 @@ App::build()
     // ...insert entities and other systems.
     .run();
 */
-pub struct BigBrainPlugin;
+// pub struct BigBrainPlugin;
 
-impl Plugin for BigBrainPlugin {
-    fn build(&self, app: &mut App) {
-        use CoreStage::*;
+// impl BigBrainPlugin {
+//     fn build(&self, app: &mut Schedule) {
+//         use CoreStage::*;
 
-        app.add_stage_after(First, BigBrainStage::Scorers, SystemStage::parallel());
-        app.add_system_set_to_stage(
-            BigBrainStage::Scorers,
-            SystemSet::new()
-                .with_system(scorers::fixed_score_system)
-                .with_system(scorers::all_or_nothing_system)
-                .with_system(scorers::sum_of_scorers_system)
-                .with_system(scorers::winning_scorer_system)
-                .with_system(scorers::evaluating_scorer_system),
-        );
+//         app.add_stage_after(First, BigBrainStage::Scorers, SystemStage::parallel());
+//         app.add_system_set_to_stage(
+//             BigBrainStage::Scorers,
+//             SystemSet::new()
+//                 .with_system(scorers::fixed_score_system)
+//                 .with_system(scorers::all_or_nothing_system)
+//                 .with_system(scorers::sum_of_scorers_system)
+//                 .with_system(scorers::winning_scorer_system)
+//                 .with_system(scorers::evaluating_scorer_system),
+//         );
 
-        app.add_stage_after(
-            BigBrainStage::Scorers,
-            BigBrainStage::Thinkers,
-            SystemStage::parallel(),
-        );
-        app.add_system_to_stage(BigBrainStage::Thinkers, thinker::thinker_system);
+//         app.add_stage_after(
+//             BigBrainStage::Scorers,
+//             BigBrainStage::Thinkers,
+//             SystemStage::parallel(),
+//         );
+//         app.add_system_to_stage(BigBrainStage::Thinkers, thinker::thinker_system);
 
-        app.add_stage_after(PreUpdate, BigBrainStage::Actions, SystemStage::parallel());
-        app.add_system_set_to_stage(
-            BigBrainStage::Actions,
-            SystemSet::new()
-                .with_system(actions::steps_system)
-                .with_system(actions::concurrent_system),
-        );
+//         app.add_stage_after(PreUpdate, BigBrainStage::Actions, SystemStage::parallel());
+//         app.add_system_set_to_stage(
+//             BigBrainStage::Actions,
+//             SystemSet::new()
+//                 .with_system(actions::steps_system)
+//                 .with_system(actions::concurrent_system),
+//         );
 
-        app.add_stage_after(Last, BigBrainStage::Cleanup, SystemStage::parallel());
-        app.add_system_set_to_stage(
-            BigBrainStage::Cleanup,
-            SystemSet::new()
-                .with_system(thinker::thinker_component_attach_system)
-                .with_system(thinker::thinker_component_detach_system)
-                .with_system(thinker::actor_gone_cleanup),
-        );
-    }
-}
+//         app.add_stage_after(Last, BigBrainStage::Cleanup, SystemStage::parallel());
+//         app.add_system_set_to_stage(
+//             BigBrainStage::Cleanup,
+//             SystemSet::new()
+//                 .with_system(thinker::thinker_component_attach_system)
+//                 .with_system(thinker::thinker_component_detach_system)
+//                 .with_system(thinker::actor_gone_cleanup),
+//         );
+//     }
+// }
 
 /**
 BigBrainPlugin execution stages. Use these to schedule your own actions/scorers/etc.

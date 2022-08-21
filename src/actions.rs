@@ -3,7 +3,7 @@ Defines Action-related functionality. This module includes the ActionBuilder tra
 */
 use std::sync::Arc;
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 use crate::thinker::{ActionEnt, Actor};
 
@@ -108,7 +108,6 @@ pub trait ActionBuilder: std::fmt::Debug + Send + Sync {
     fn spawn_action(&self, cmd: &mut Commands, actor: Entity) -> Entity {
         let action_ent = ActionEnt(cmd.spawn().id());
         cmd.entity(action_ent.0)
-            .insert(Name::new("Action"))
             .insert(ActionState::new())
             .insert(Actor(actor));
         self.build(cmd, action_ent.0, actor);
@@ -148,15 +147,11 @@ impl ActionBuilder for StepsBuilder {
         if let Some(step) = self.steps.get(0) {
             let child_action = step.spawn_action(cmd, actor);
             cmd.entity(action)
-                .insert(Name::new("Steps Action"))
                 .insert(Steps {
                     active_step: 0,
                     active_ent: ActionEnt(child_action),
                     steps: self.steps.clone(),
-                })
-                .insert(Transform::default())
-                .insert(GlobalTransform::default())
-                .push_children(&[child_action]);
+                });
         }
     }
 }
@@ -197,11 +192,11 @@ System that takes care of executing any existing [`Steps`] Actions.
 */
 pub fn steps_system(
     mut cmd: Commands,
-    mut steps_q: Query<(Entity, &Actor, &mut Steps)>,
+    mut steps_q: Query<(Entity, &mut Steps)>,
     mut states: Query<&mut ActionState>,
 ) {
     use ActionState::*;
-    for (seq_ent, Actor(actor), mut steps_action) in steps_q.iter_mut() {
+    for (seq_ent, mut steps_action) in steps_q.iter_mut() {
         let active_ent = steps_action.active_ent.0;
         let current_state = states.get_mut(seq_ent).unwrap().clone();
         match current_state {
@@ -225,23 +220,22 @@ pub fn steps_system(
                         let step_state = step_state.clone();
                         let mut seq_state = states.get_mut(seq_ent).expect("idk");
                         *seq_state = step_state;
-                        cmd.entity(steps_action.active_ent.0).despawn_recursive();
+                        cmd.entity(steps_action.active_ent.0).despawn();
                     }
                     Success if steps_action.active_step == steps_action.steps.len() - 1 => {
                         // We're done! Let's just be successful
                         let step_state = step_state.clone();
                         let mut seq_state = states.get_mut(seq_ent).expect("idk");
                         *seq_state = step_state;
-                        cmd.entity(steps_action.active_ent.0).despawn_recursive();
+                        cmd.entity(steps_action.active_ent.0).despawn();
                     }
                     Success => {
                         // Deactivate current step and go to the next step
-                        cmd.entity(steps_action.active_ent.0).despawn_recursive();
+                        cmd.entity(steps_action.active_ent.0).despawn();
 
                         steps_action.active_step += 1;
                         let step_builder = steps_action.steps[steps_action.active_step].clone();
-                        let step_ent = step_builder.spawn_action(&mut cmd, *actor);
-                        cmd.entity(seq_ent).push_children(&[step_ent]);
+                        let step_ent = step_builder.spawn_action(&mut cmd, seq_ent);
                         steps_action.active_ent.0 = step_ent;
                     }
                 }
@@ -288,10 +282,6 @@ impl ActionBuilder for ConcurrentlyBuilder {
             .map(|action| action.spawn_action(cmd, actor))
             .collect();
         cmd.entity(action)
-            .insert(Name::new("Concurrent Action"))
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
-            .push_children(&children[..])
             .insert(Concurrently {
                 actions: children.into_iter().map(ActionEnt).collect(),
             });

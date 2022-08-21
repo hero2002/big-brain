@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use big_brain::prelude::*;
 
 // First, we define a "Thirst" component and associated system. This is NOT

@@ -4,7 +4,7 @@ Scorers look at the world and boil down arbitrary characteristics into a range o
 
 use std::{cmp::Ordering, sync::Arc};
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 use crate::{
     evaluators::Evaluator,
@@ -83,7 +83,6 @@ pub trait ScorerBuilder: std::fmt::Debug + Sync + Send {
     fn spawn_scorer(&self, cmd: &mut Commands, actor: Entity) -> Entity {
         let scorer_ent = cmd.spawn().id();
         cmd.entity(scorer_ent)
-            .insert(Name::new("Scorer"))
             .insert(Score::default())
             .insert(Actor(actor));
         self.build(cmd, scorer_ent, actor);
@@ -189,10 +188,6 @@ impl ScorerBuilder for AllOrNothingBuilder {
             .collect();
         cmd.entity(scorer)
             .insert(Score::default())
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
-            .push_children(&scorers[..])
-            .insert(Name::new("Scorer"))
             .insert(AllOrNothing {
                 threshold: self.threshold,
                 scorers: scorers.into_iter().map(ScorerEnt).collect(),
@@ -273,9 +268,6 @@ impl ScorerBuilder for SumOfScorersBuilder {
             .map(|scorer| scorer.spawn_scorer(cmd, actor))
             .collect();
         cmd.entity(scorer)
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
-            .push_children(&scorers[..])
             .insert(SumOfScorers {
                 threshold: self.threshold,
                 scorers: scorers.into_iter().map(ScorerEnt).collect(),
@@ -365,9 +357,6 @@ impl ScorerBuilder for WinningScorerBuilder {
             .map(|scorer| scorer.spawn_scorer(cmd, actor))
             .collect();
         cmd.entity(scorer)
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
-            .push_children(&scorers[..])
             .insert(WinningScorer {
                 threshold: self.threshold,
                 scorers: scorers.into_iter().map(ScorerEnt).collect(),
@@ -437,9 +426,6 @@ impl ScorerBuilder for EvaluatingScorerBuilder {
         let inner_scorer = self.scorer.spawn_scorer(cmd, actor);
         let scorers = vec![inner_scorer];
         cmd.entity(scorer)
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
-            .push_children(&scorers[..])
             .insert(EvaluatingScorer {
                 evaluator: self.evaluator.clone(),
                 scorer: ScorerEnt(inner_scorer),
